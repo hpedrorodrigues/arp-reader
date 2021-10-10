@@ -21,6 +21,10 @@ func GetTable() (ArpTable, error) {
 	lines := strings.Split(string(output), "\n")
 
 	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+
 		fields := strings.Fields(line)
 
 		ipAddr := strings.TrimFunc(fields[ipAddrIdx], func(r rune) bool { return r == '(' || r == ')' })
