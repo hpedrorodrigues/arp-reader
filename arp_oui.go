@@ -15,6 +15,7 @@ const (
 	ouiFileMode = 0644
 
 	manufacturerPrefixIdx = 0
+	manufacturerNameIdx   = 2
 )
 
 func isValidFile(path string) bool {
@@ -26,8 +27,8 @@ func isValidFile(path string) bool {
 }
 
 func ensureFile() error {
-	if !isValidFile(ouiUri) {
-		r, err := http.Get(ouiFilePath)
+	if !isValidFile(ouiFilePath) {
+		r, err := http.Get(ouiUri)
 		if err != nil {
 			return err
 		}
@@ -66,10 +67,23 @@ func FindManufacturer(hwAddr string) (string, error) {
 
 	for sc.Scan() {
 		line := sc.Text()
-		fields := strings.Fields(line)
+		if len(line) == 0 {
+			continue
+		}
 
-		if strings.HasPrefix(hwAddr, fields[manufacturerPrefixIdx]) {
-			return fields[manufacturerPrefixIdx], nil
+		if !strings.Contains(line, "(hex)") {
+			continue
+		}
+
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+
+		prefix := strings.ToLower(strings.ReplaceAll(fields[manufacturerPrefixIdx], "-", ":"))
+		shortHwAddr := strings.Join(strings.Split(hwAddr, ":")[:3], ":")
+		if strings.Contains(prefix, shortHwAddr) {
+			return strings.Join(fields[manufacturerNameIdx:], " "), nil
 		}
 	}
 

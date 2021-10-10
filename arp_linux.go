@@ -35,7 +35,10 @@ func GetTable(config *TableConfig) (ArpTable, error) {
 		hwAddress := fields[hwAddr]
 		var manufacturer string
 		if !config.IgnoreManufacturer {
-			mf, _ := FindManufacturer(hwAddress)
+			mf, err := FindManufacturer(hwAddress)
+			if err != nil {
+				return nil, err
+			}
 			manufacturer = mf
 		}
 
