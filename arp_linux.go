@@ -17,7 +17,7 @@ const (
 
 const arpFile = "/proc/net/arp"
 
-func GetTable() (ArpTable, error) {
+func GetTable(config *TableConfig) (ArpTable, error) {
 	f, err := os.Open(arpFile)
 	if err != nil {
 		return nil, err
@@ -32,9 +32,17 @@ func GetTable() (ArpTable, error) {
 		line := sc.Text()
 		fields := strings.Fields(line)
 
+		hwAddress := fields[hwAddr]
+		var manufacturer string
+		if !config.IgnoreManufacturer {
+			mf, _ := FindManufacturer(hwAddress)
+			manufacturer = mf
+		}
+
 		table = append(table, ARPEntry{
-			IPAddr: fields[ipAddr],
-			HWAddr: fields[hwAddr],
+			IPAddr:       fields[ipAddr],
+			HWAddr:       hwAddress,
+			Manufacturer: manufacturer,
 		})
 	}
 

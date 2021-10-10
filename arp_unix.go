@@ -10,7 +10,7 @@ const (
 	hwAddrIdx = 3
 )
 
-func GetTable() (ArpTable, error) {
+func GetTable(config *TableConfig) (ArpTable, error) {
 	output, err := exec.Command("arp", "-an").Output()
 	if err != nil {
 		return nil, err
@@ -30,9 +30,16 @@ func GetTable() (ArpTable, error) {
 		ipAddr := strings.TrimFunc(fields[ipAddrIdx], func(r rune) bool { return r == '(' || r == ')' })
 		hwAddr := fields[hwAddrIdx]
 
+		var manufacturer string
+		if !config.IgnoreManufacturer {
+			mf, _ := FindManufacturer(hwAddr)
+			manufacturer = mf
+		}
+
 		table = append(table, ARPEntry{
-			IPAddr: ipAddr,
-			HWAddr: hwAddr,
+			IPAddr:       ipAddr,
+			HWAddr:       hwAddr,
+			Manufacturer: manufacturer,
 		})
 	}
 
